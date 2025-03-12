@@ -1,6 +1,6 @@
 import { IsOptional, IsString } from 'class-validator';
 
-export class textToAudioDto {
+export class TextToAudioDto {
   @IsString()
   readonly prompt: string;
   @IsString()

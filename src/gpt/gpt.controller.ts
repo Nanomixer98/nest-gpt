@@ -1,14 +1,26 @@
 import {
   Body,
   Controller,
+  FileTypeValidator,
   Get,
   HttpStatus,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   Post,
   Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
-import { OrthographyDto, textToAudioDto, TranslateDto } from './dtos';
+import { diskStorage } from 'multer';
+import {
+  AudioToTextDto,
+  OrthographyDto,
+  TextToAudioDto,
+  TranslateDto,
+} from './dtos';
 import { GptService } from './gpt.service';
 
 @Controller('gpt')
@@ -66,7 +78,6 @@ export class GptController {
 
   @Get('text-to-audio/:fileId')
   textToAudioGetter(@Param('fileId') fileId: string, @Res() res: Response) {
-    console.log('controller fileId', fileId);
     const filePath = this.gptService.textToAudioGetter(fileId);
     res.setHeader('Content-Type', 'audio/mp3');
     res.status(HttpStatus.OK);
@@ -75,12 +86,43 @@ export class GptController {
 
   @Post('text-to-audio')
   async textToAudio(
-    @Body() textToAudioDto: textToAudioDto,
+    @Body() textToAudioDto: TextToAudioDto,
     @Res() res: Response,
   ) {
     const filePath = await this.gptService.textToAudio(textToAudioDto);
     res.setHeader('Content-Type', 'audio/mp3');
     res.status(HttpStatus.OK);
     res.sendFile(filePath);
+  }
+
+  @Post('audio-to-text')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './generated/uploads',
+        filename: (req, file, callback) => {
+          const fileExtension = file.originalname.split('.').pop();
+          const fileName = `${Date.now()}.${fileExtension}`;
+          return callback(null, fileName);
+        },
+      }),
+    }),
+  )
+  audioToText(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 1000 * 1024 * 5,
+            message: 'File too large',
+          }),
+          new FileTypeValidator({ fileType: 'audio/*' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+    @Body() audioToTextDto: AudioToTextDto,
+  ) {
+    return this.gptService.audioToText(file, audioToTextDto);
   }
 }
