@@ -59,4 +59,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # Exclude generated audios
 generated/audios/*
 generated/uploads/*
+generated/images/*
 !generated/uploads/el_parque.m4a

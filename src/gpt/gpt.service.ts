@@ -3,6 +3,8 @@ import OpenAI from 'openai';
 import { Stream } from 'openai/streaming';
 import {
   AudioToTextDto,
+  ImageGenerationDto,
+  ImageVariationDto,
   OrthographyDto,
   ProsConsDiscusserDto,
   TextToAudioDto,
@@ -10,6 +12,9 @@ import {
 } from './dtos';
 import {
   audioToTextUseCase,
+  generateImageVariationUseCase,
+  imageGeneratedGetterUseCase,
+  imageGenerationUseCase,
   orthographyCheckUseCase,
   prosConsDicusserStreamUseCase,
   prosConsDicusserUseCase,
@@ -79,5 +84,27 @@ export class GptService {
     const { prompt } = audioToTextDto || {};
 
     return await audioToTextUseCase(this.openai, { audioFile, prompt });
+  }
+
+  async imageGeneration(imageGenerationDto: ImageGenerationDto) {
+    return await imageGenerationUseCase(this.openai, { ...imageGenerationDto });
+  }
+
+  imageGeneratedGetter(fileName: string) {
+    let filePath = '';
+    try {
+      filePath = imageGeneratedGetterUseCase({ fileName });
+    } catch (error) {
+      console.error(error);
+      throw new NotFoundException(`File ${fileName} not found`);
+    }
+
+    return filePath;
+  }
+
+  async generateImageVariation(imageVariationDto: ImageVariationDto) {
+    return await generateImageVariationUseCase(this.openai, {
+      ...imageVariationDto,
+    });
   }
 }
