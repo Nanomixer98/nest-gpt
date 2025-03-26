@@ -39,7 +39,6 @@ export const imageGenerationUseCase = async (
   const maskImagePath = await downloadBase64ImageAsPng(maskImage, true);
 
   const response = await openai.images.edit({
-    model: 'dall-e-3',
     prompt,
     image: fs.createReadStream(pngImagePath),
     mask: fs.createReadStream(maskImagePath),
