@@ -15,6 +15,7 @@ import {
   generateImageVariationUseCase,
   imageGeneratedGetterUseCase,
   imageGenerationUseCase,
+  imageToTextUseCase,
   orthographyCheckUseCase,
   prosConsDicusserStreamUseCase,
   prosConsDicusserUseCase,
@@ -106,5 +107,9 @@ export class GptService {
     return await generateImageVariationUseCase(this.openai, {
       ...imageVariationDto,
     });
+  }
+
+  async imageToText(imageFile: Express.Multer.File, prompt: string) {
+    return await imageToTextUseCase(this.openai, { imageFile, prompt });
   }
 }
